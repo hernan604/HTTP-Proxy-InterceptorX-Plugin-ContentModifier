@@ -48,6 +48,7 @@ after 'set_response' => sub {
             warn "  INTERCEPTED => " , $self->url , "\n";
             $content = $self->urls_to_proxy->{ $self->url }->{ code }( $self, $content );
             $http_request->content( $content );
+            $http_request->{ _headers }->{ "content-length" } = length $content;
         }
     }
 };
