@@ -32,7 +32,7 @@ after 'set_response' => sub {
     my ( $self, $http_request ) = @_; 
     if ( defined $http_request and
          exists $self->urls_to_proxy->{ $self->url } and 
-         exists $self->urls_to_proxy->{ $self->url }->{ code } ) {
+         exists $self->urls_to_proxy->{ $self->url }->{ ContentModifier } ) {
         my   $content             = $http_request->content;
         if ( exists $http_request->{ _headers }->{ "content-encoding" } and
                     $http_request->{ _headers }->{ "content-encoding" } =~ m/gzip/ig ) {
@@ -46,7 +46,7 @@ after 'set_response' => sub {
         }
         if ( defined $content ) {
             warn "  INTERCEPTED => " , $self->url , "\n";
-            $content = $self->urls_to_proxy->{ $self->url }->{ code }( $self, $content );
+            $content = $self->urls_to_proxy->{ $self->url }->{ ContentModifier }( $self, $content );
             $http_request->content( $content );
             $http_request->{ _headers }->{ "content-length" } = length $content;
         }
