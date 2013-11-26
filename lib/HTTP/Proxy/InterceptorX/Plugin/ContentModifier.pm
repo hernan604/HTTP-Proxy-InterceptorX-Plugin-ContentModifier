@@ -3,35 +3,14 @@ package HTTP::Proxy::InterceptorX::Plugin::ContentModifier;
 use strict;
 use 5.008_005;
 our $VERSION = '0.01';
-
-=head2
-
-Plugin para permite alterar o conteúdo de uma página. 
-
-Uma exigencia é usar perl no seu config.pl ao inves de config.json
-
-    "http://www.w3schools.com/" => {
-        "code" => sub {
-          my ( $self, $content ) = @_;
-          $content =~ s/Learn/CLICK FOR WRONG/gix;
-          return $content;
-        }
-    },
-
-No caso acima, sempte que abrir o site www.w3schools vai trocar a palavra "Learn" por "CLICK FOR WRONG"
-
-mas poderia ser usado para trocar caminhos de scripts, ou de imagens.
-
-=cut
-
 use Moose::Role;
 use Data::Printer;
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
 
 after 'set_response' => sub {
-    my ( $self, $http_request ) = @_; 
+    my ( $self, $http_request ) = @_;
     if ( defined $http_request and
-         exists $self->urls_to_proxy->{ $self->url } and 
+         exists $self->urls_to_proxy->{ $self->url } and
          exists $self->urls_to_proxy->{ $self->url }->{ ContentModifier } ) {
         my   $content             = $http_request->content;
         if ( exists $http_request->{ _headers }->{ "content-encoding" } and
@@ -54,17 +33,60 @@ after 'set_response' => sub {
 };
 
 1;
+
 __END__
 
 =encoding utf-8
 
 =head1 NAME
 
-HTTP::Proxy::InterceptorX::Plugin::ContentModifier - Blah blah blah
+HTTP::Proxy::InterceptorX::Plugin::ContentModifier - Allows you to change parts or the whole response content
 
 =head1 SYNOPSIS
 
-  use HTTP::Proxy::InterceptorX::Plugin::ContentModifier;
+    package My::Custom::Proxy;
+    use Moose;
+    extends qw/HTTP::Proxy::Interceptor/;
+    with qw/
+        HTTP::Proxy::InterceptorX::Plugin::ContentModifier
+    /;
+    1;
+
+    my $p = My::Custom::Proxy->new(
+      config_path => 'config_file.pl',
+      port        => 9919,
+    );
+
+    $p->start;
+    1;
+
+
+=head1 CONFIG
+
+save a config_file.pl
+
+    {
+        #modify the response-content, but only some words.
+        #plugin used: HTTP-Proxy-InterceptorX-Plugin-ContentModifier
+        "http://www.w3schools.com/" => {
+            ContentModifier => sub {
+                my ( $self, $content ) = @_;
+                $content =~ s/Learn/CLICK FOR WRONG/gix;
+                return $content;
+            }
+        },
+
+        #Or change the whole content of a response
+        "http://some.site.com.br?with=query" => {
+            ContentModifier => sub {
+                my ( $self, $content ) = @_;
+                use File::Slurp;
+                return read_file( "/home/user/some/content.htm" );
+            }
+        },
+    }
+
+and start the proxy
 
 =head1 DESCRIPTION
 
