@@ -14,7 +14,7 @@ with qw/
 /;
 
 my $url_path;
-my $proxy_port        = 32452;
+my $proxy_port        = int(rand(9999))+50000;
 my $tests_config      = TestsConfig->new();
 my $server            = TestServer->new();
    $server->set_dispatch( $tests_config->conteudos );
@@ -24,7 +24,7 @@ my $pid_server        = $server->background();
 my $p = My::Proxy->new( urls_to_proxy => {
     $server->root . "/scripts.js" => {
         # this test will replace string javascript for perl 
-        "code" => sub {
+        ContentModifier => sub {
             my ( $self, $content ) = @_;
             $content =~ s/javascript/perl/gix;
             return $content;
@@ -62,7 +62,7 @@ ok( $res_proxy->{ content } !~ /javascript/ig , "did not find javascript in the 
 
 
 #depois dos testes..
-kill 'HUP', $pid, $pid_server;
+kill 'KILL', $pid, $pid_server;
 
 
 
