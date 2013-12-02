@@ -13,17 +13,7 @@ after 'set_response' => sub {
          exists $self->urls_to_proxy->{ $self->url } and
          exists $self->urls_to_proxy->{ $self->url }->{ ContentModifier } ) {
         my   $content             = $http_request->content;
-        if ( exists $http_request->{ _headers }->{ "content-encoding" } and
-                    $http_request->{ _headers }->{ "content-encoding" } =~ m/gzip/ig ) {
-            my ( $content_decompressed, $scalar, $GunzipError );
-            gunzip \$content => \$content_decompressed,
-                        MultiStream => 1, Append => 1, TrailingData => \$scalar
-               or die "gunzip failed: $GunzipError\n";
-               $content = $content_decompressed;
-                delete $http_request->{ _headers }->{ "content-encoding" };
-                       $http_request->{ _headers }->{ "content-length" } = length $content_decompressed;
-        }
-        if ( defined $content ) {
+        if ( $content ) {
             warn "  INTERCEPTED => " , $self->url , "\n";
             $content = $self->urls_to_proxy->{ $self->url }->{ ContentModifier }( $self, $content );
             $http_request->content( $content );
